@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Card,
@@ -46,6 +47,7 @@ export const ContainerList: React.FC<ContainerListProps> = ({
   onEditContainer,
   onRefresh,
 }) => {
+  const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -64,6 +66,13 @@ export const ContainerList: React.FC<ContainerListProps> = ({
   const handleEdit = () => {
     if (selectedContainer) {
       onEditContainer(selectedContainer);
+    }
+    handleMenuClose();
+  };
+
+  const handleView = () => {
+    if (selectedContainer) {
+      navigate(`/containers/${selectedContainer.id}`);
     }
     handleMenuClose();
   };
@@ -193,7 +202,7 @@ export const ContainerList: React.FC<ContainerListProps> = ({
           onClose={handleMenuClose}
         >
           <MenuItem onClick={handleEdit}>Edit</MenuItem>
-          <MenuItem onClick={handleMenuClose}>View</MenuItem>
+          <MenuItem onClick={handleView}>View</MenuItem>
           <MenuItem onClick={handleMenuClose}>Shutdown</MenuItem>
         </Menu>
       </CardContent>

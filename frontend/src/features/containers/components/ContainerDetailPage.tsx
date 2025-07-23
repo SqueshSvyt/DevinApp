@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container,
   Box,
@@ -21,22 +21,28 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  IconButton
+  Breadcrumbs,
+  Link,
+  ButtonGroup,
+  Button
 } from '@mui/material';
 import {
-  ArrowBack,
   Settings,
   Nature,
   Inventory,
   DeviceHub,
   Warning,
   CheckCircle,
-  Schedule,
-  TrendingUp
+  Thermostat,
+  Opacity,
+  Air,
+  Agriculture,
+  Dashboard
 } from '@mui/icons-material';
 import { Container as ContainerType } from '../../../shared/types/containers';
 import { LoadingSpinner, ErrorMessage, StatusChip } from '../../../shared/components';
-import { apiService } from '../../../shared/utils';
+import { containerApi } from '../../../shared/utils';
+import { MetricCard } from './MetricCard';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -62,10 +68,12 @@ function TabPanel(props: TabPanelProps) {
 
 export const ContainerDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [container, setContainer] = useState<ContainerType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
+  const [timeRange, setTimeRange] = useState('Week');
 
   useEffect(() => {
     const fetchContainer = async () => {
@@ -73,7 +81,7 @@ export const ContainerDetailPage: React.FC = () => {
       
       try {
         setLoading(true);
-        const data = await apiService.getContainer(id);
+        const data = await containerApi.getContainer(id);
         setContainer(data);
       } catch (err) {
         setError('Failed to load container details');
@@ -90,63 +98,88 @@ export const ContainerDetailPage: React.FC = () => {
   };
 
   if (loading) return <LoadingSpinner />;
-  if (error) return <ErrorMessage message={error} />;
-  if (!container) return <ErrorMessage message="Container not found" />;
+  if (error) return <ErrorMessage error={error} />;
+  if (!container) return <ErrorMessage error="Container not found" />;
 
   const mockCrops = [
     {
       id: '1',
-      seedType: 'Lettuce - Buttercrunch',
-      seedDate: '2024-01-15',
-      transplantingDate: '2024-01-22',
-      harvestingDate: '2024-02-15',
-      age: 25,
-      status: 'growing',
-      overdueDays: 0
+      seedType: 'Salanova Cousteau',
+      cultivationArea: 40,
+      nurseryTable: 30,
+      lastSD: '2025-01-30',
+      lastTD: '2025-01-30',
+      lastHD: '--',
+      avgAge: 26,
+      overdue: 2
     },
     {
       id: '2',
-      seedType: 'Spinach - Baby Leaf',
-      seedDate: '2024-01-18',
-      transplantingDate: '2024-01-25',
-      harvestingDate: '2024-02-18',
-      age: 22,
-      status: 'transplanted',
-      overdueDays: 2
-    }
-  ];
-
-  const mockActivities = [
-    {
-      id: '1',
-      timestamp: '2024-01-20 14:30',
-      action: 'Nutrient solution adjusted',
-      user: 'John Doe',
-      details: 'pH adjusted to 6.2, EC to 1.8'
+      seedType: 'Kiribati',
+      cultivationArea: 50,
+      nurseryTable: 20,
+      lastSD: '2025-01-30',
+      lastTD: '2025-01-30',
+      lastHD: '--',
+      avgAge: 30,
+      overdue: 0
     },
     {
-      id: '2',
-      timestamp: '2024-01-19 09:15',
-      action: 'Crop transplanted',
-      user: 'Jane Smith',
-      details: '24 lettuce seedlings moved to growing panels'
+      id: '3',
+      seedType: 'Rex Butterhead',
+      cultivationArea: 65,
+      nurseryTable: 10,
+      lastSD: '2025-01-10',
+      lastTD: '2025-01-20',
+      lastHD: '2025-01-01',
+      avgAge: 22,
+      overdue: 0
+    },
+    {
+      id: '4',
+      seedType: 'Lollo Rossa',
+      cultivationArea: 35,
+      nurseryTable: 25,
+      lastSD: '2025-01-15',
+      lastTD: '2025-01-20',
+      lastHD: '2025-05-02',
+      avgAge: 18,
+      overdue: 11
     }
   ];
 
   return (
     <Container maxWidth="xl">
-      <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-        <IconButton onClick={() => window.history.back()}>
-          <ArrowBack />
-        </IconButton>
+      <Box sx={{ mb: 2 }}>
+        <Breadcrumbs>
+          <Link 
+            component="button" 
+            variant="body1" 
+            onClick={() => navigate('/containers')}
+            sx={{ textDecoration: 'none' }}
+          >
+            Container Dashboard
+          </Link>
+          <Typography color="text.primary">{container.name}</Typography>
+        </Breadcrumbs>
+      </Box>
+
+      <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
         <Typography variant="h4" component="h1">
           {container.name}
         </Typography>
+        <Chip 
+          label={container.type} 
+          color={container.type === 'physical' ? 'primary' : 'secondary'}
+          size="small"
+        />
+        <Chip label={container.tenant} variant="outlined" size="small" />
+        <Chip label={container.purpose} variant="outlined" size="small" />
         <StatusChip status={container.status} />
-        {container.alerts && container.alerts.length > 0 && (
+        {container.has_alert && (
           <Chip
             icon={<Warning />}
-            label={`${container.alerts.length} Alert${container.alerts.length > 1 ? 's' : ''}`}
+            label="Alert"
             color="warning"
             size="small"
           />
@@ -164,12 +197,134 @@ export const ContainerDetailPage: React.FC = () => {
         </Box>
 
         <TabPanel value={tabValue} index={0}>
+          <Box sx={{ mb: 4 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Typography variant="h6">Container Metrics</Typography>
+              <ButtonGroup size="small">
+                {['Week', 'Month', 'Quarter', 'Year'].map((range) => (
+                  <Button
+                    key={range}
+                    variant={timeRange === range ? 'contained' : 'outlined'}
+                    onClick={() => setTimeRange(range)}
+                  >
+                    {range}
+                  </Button>
+                ))}
+              </ButtonGroup>
+            </Box>
+            
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6} md={2}>
+                <MetricCard
+                  title="Air Temperature"
+                  value="20"
+                  unit="°C"
+                  color="info"
+                  icon={<Thermostat />}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={2}>
+                <MetricCard
+                  title="Rel. Humidity"
+                  value="65"
+                  unit="%"
+                  color="primary"
+                  icon={<Opacity />}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={2}>
+                <MetricCard
+                  title="CO₂ Level"
+                  value="860"
+                  unit="ppm"
+                  color="warning"
+                  icon={<Air />}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={2}>
+                <MetricCard
+                  title="Yield"
+                  value="51"
+                  unit="KG"
+                  color="success"
+                  icon={<Agriculture />}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={2}>
+                <MetricCard
+                  title="Nursery Station Utilization"
+                  value="75"
+                  unit="%"
+                  color="secondary"
+                  icon={<Dashboard />}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={2}>
+                <MetricCard
+                  title="Cultivation Area Utilization"
+                  value="90"
+                  unit="%"
+                  color="success"
+                  icon={<Dashboard />}
+                />
+              </Grid>
+            </Grid>
+          </Box>
+
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" gutterBottom>Crops</Typography>
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>SEED TYPE</TableCell>
+                    <TableCell align="center">CULTIVATION AREA</TableCell>
+                    <TableCell align="center">NURSERY TABLE</TableCell>
+                    <TableCell>LAST SD</TableCell>
+                    <TableCell>LAST TD</TableCell>
+                    <TableCell>LAST HD</TableCell>
+                    <TableCell align="center">AVG AGE</TableCell>
+                    <TableCell align="center">OVERDUE</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {mockCrops.map((crop) => (
+                    <TableRow key={crop.id}>
+                      <TableCell>{crop.seedType}</TableCell>
+                      <TableCell align="center">{crop.cultivationArea}</TableCell>
+                      <TableCell align="center">{crop.nurseryTable}</TableCell>
+                      <TableCell>{crop.lastSD}</TableCell>
+                      <TableCell>{crop.lastTD}</TableCell>
+                      <TableCell>{crop.lastHD}</TableCell>
+                      <TableCell align="center">{crop.avgAge}</TableCell>
+                      <TableCell align="center">
+                        {crop.overdue > 0 ? (
+                          <Chip 
+                            label={crop.overdue} 
+                            color={crop.overdue > 5 ? 'error' : 'warning'} 
+                            size="small" 
+                          />
+                        ) : (
+                          <Chip 
+                            label="0" 
+                            color="success" 
+                            size="small" 
+                          />
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
+
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
-                    Container Information
+                    Container Information & Settings
                   </Typography>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -178,7 +333,7 @@ export const ContainerDetailPage: React.FC = () => {
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography color="textSecondary">Tenant:</Typography>
-                      <Typography>{container.tenant_id}</Typography>
+                      <Typography>{container.tenant}</Typography>
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography color="textSecondary">Purpose:</Typography>
@@ -192,7 +347,7 @@ export const ContainerDetailPage: React.FC = () => {
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography color="textSecondary">Created:</Typography>
-                      <Typography>{new Date(container.created_at).toLocaleDateString()}</Typography>
+                      <Typography>{new Date(container.created).toLocaleDateString()}</Typography>
                     </Box>
                   </Box>
                 </CardContent>
@@ -203,44 +358,27 @@ export const ContainerDetailPage: React.FC = () => {
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
-                    Performance Metrics
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <TrendingUp color="primary" />
-                      <Typography>Yield: {container.metrics?.yield || 'N/A'} kg</Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <CheckCircle color="success" />
-                      <Typography>Space Utilization: {container.metrics?.spaceUtilization || 'N/A'}%</Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Schedule color="info" />
-                      <Typography>Avg Growth Cycle: {container.metrics?.avgGrowthCycle || 'N/A'} days</Typography>
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
                     Recent Activity
                   </Typography>
                   <List>
-                    {mockActivities.map((activity) => (
-                      <ListItem key={activity.id}>
-                        <ListItemIcon>
-                          <CheckCircle color="success" />
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={activity.action}
-                          secondary={`${activity.timestamp} - ${activity.user} - ${activity.details}`}
-                        />
-                      </ListItem>
-                    ))}
+                    <ListItem>
+                      <ListItemIcon>
+                        <CheckCircle color="success" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary="Nutrient solution adjusted"
+                        secondary="2024-01-20 14:30 - John Doe - pH adjusted to 6.2, EC to 1.8"
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon>
+                        <CheckCircle color="success" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary="Crop transplanted"
+                        secondary="2024-01-19 09:15 - Jane Smith - 24 lettuce seedlings moved to growing panels"
+                      />
+                    </ListItem>
                   </List>
                 </CardContent>
               </Card>
@@ -259,7 +397,7 @@ export const ContainerDetailPage: React.FC = () => {
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography color="textSecondary">Temperature:</Typography>
-                      <Typography>{container.environment?.temperature || 'N/A'}°C</Typography>
+                      <Typography>{container.environment?.air_temperature || 'N/A'}°C</Typography>
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography color="textSecondary">Humidity:</Typography>
@@ -267,11 +405,11 @@ export const ContainerDetailPage: React.FC = () => {
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography color="textSecondary">CO2 Level:</Typography>
-                      <Typography>{container.environment?.co2Level || 'N/A'} ppm</Typography>
+                      <Typography>{container.environment?.co2 || 'N/A'} ppm</Typography>
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography color="textSecondary">Light Intensity:</Typography>
-                      <Typography>{container.environment?.lightIntensity || 'N/A'} μmol/m²/s</Typography>
+                      <Typography>N/A μmol/m²/s</Typography>
                     </Box>
                   </Box>
                 </CardContent>
@@ -287,19 +425,19 @@ export const ContainerDetailPage: React.FC = () => {
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography color="textSecondary">pH Level:</Typography>
-                      <Typography>{container.environment?.phLevel || 'N/A'}</Typography>
+                      <Typography>N/A</Typography>
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography color="textSecondary">EC Level:</Typography>
-                      <Typography>{container.environment?.ecLevel || 'N/A'} mS/cm</Typography>
+                      <Typography>N/A mS/cm</Typography>
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography color="textSecondary">Nitrogen:</Typography>
-                      <Typography>{container.environment?.nitrogen || 'N/A'} ppm</Typography>
+                      <Typography>N/A ppm</Typography>
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography color="textSecondary">Phosphorus:</Typography>
-                      <Typography>{container.environment?.phosphorus || 'N/A'} ppm</Typography>
+                      <Typography>N/A ppm</Typography>
                     </Box>
                   </Box>
                 </CardContent>
@@ -318,31 +456,39 @@ export const ContainerDetailPage: React.FC = () => {
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>Seed Type</TableCell>
-                      <TableCell>Seed Date</TableCell>
-                      <TableCell>Transplanting Date</TableCell>
-                      <TableCell>Harvesting Date</TableCell>
-                      <TableCell>Age (days)</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell>Overdue Days</TableCell>
+                      <TableCell>SEED TYPE</TableCell>
+                      <TableCell align="center">CULTIVATION AREA</TableCell>
+                      <TableCell align="center">NURSERY TABLE</TableCell>
+                      <TableCell>LAST SD</TableCell>
+                      <TableCell>LAST TD</TableCell>
+                      <TableCell>LAST HD</TableCell>
+                      <TableCell align="center">AVG AGE</TableCell>
+                      <TableCell align="center">OVERDUE</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {mockCrops.map((crop) => (
                       <TableRow key={crop.id}>
                         <TableCell>{crop.seedType}</TableCell>
-                        <TableCell>{crop.seedDate}</TableCell>
-                        <TableCell>{crop.transplantingDate}</TableCell>
-                        <TableCell>{crop.harvestingDate}</TableCell>
-                        <TableCell>{crop.age}</TableCell>
-                        <TableCell>
-                          <StatusChip status={crop.status} />
-                        </TableCell>
-                        <TableCell>
-                          {crop.overdueDays > 0 ? (
-                            <Chip label={crop.overdueDays} color="warning" size="small" />
+                        <TableCell align="center">{crop.cultivationArea}</TableCell>
+                        <TableCell align="center">{crop.nurseryTable}</TableCell>
+                        <TableCell>{crop.lastSD}</TableCell>
+                        <TableCell>{crop.lastTD}</TableCell>
+                        <TableCell>{crop.lastHD}</TableCell>
+                        <TableCell align="center">{crop.avgAge}</TableCell>
+                        <TableCell align="center">
+                          {crop.overdue > 0 ? (
+                            <Chip 
+                              label={crop.overdue} 
+                              color={crop.overdue > 5 ? 'error' : 'warning'} 
+                              size="small" 
+                            />
                           ) : (
-                            '-'
+                            <Chip 
+                              label="0" 
+                              color="success" 
+                              size="small" 
+                            />
                           )}
                         </TableCell>
                       </TableRow>
@@ -405,16 +551,16 @@ export const ContainerDetailPage: React.FC = () => {
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography color="textSecondary">Shadow Service:</Typography>
                       <Chip
-                        label={container.settings?.shadowServiceEnabled ? 'Enabled' : 'Disabled'}
-                        color={container.settings?.shadowServiceEnabled ? 'success' : 'default'}
+                        label="Disabled"
+                        color="default"
                         size="small"
                       />
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography color="textSecondary">Ecosystem Connected:</Typography>
                       <Chip
-                        label={container.settings?.ecosystemConnected ? 'Connected' : 'Disconnected'}
-                        color={container.settings?.ecosystemConnected ? 'success' : 'error'}
+                        label="Disconnected"
+                        color="error"
                         size="small"
                       />
                     </Box>
