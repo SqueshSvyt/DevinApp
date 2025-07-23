@@ -1,31 +1,26 @@
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
-
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from app.core.config import settings
 
-# Async database setup (main application)
-async_engine = create_async_engine(
-    settings.ASYNC_SQLALCHEMY_DATABASE_URI,
-    pool_pre_ping=True,
-    echo=False
-)
-AsyncSessionLocal = async_sessionmaker(
-    async_engine,
-    class_=AsyncSession,
-    expire_on_commit=False
-)
+engine = create_engine(settings.SQLALCHEMY_DATABASE_URI)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Sync engine only for Alembic migrations
-sync_engine = create_engine(settings.SQLALCHEMY_DATABASE_URI, pool_pre_ping=True)
+async_engine = create_async_engine(settings.ASYNC_SQLALCHEMY_DATABASE_URI)
+AsyncSessionLocal = sessionmaker(
+    async_engine, class_=AsyncSession, expire_on_commit=False
+)
 
 Base = declarative_base()
 
-def create_tables():
-    """Create all database tables - deprecated, use Alembic migrations"""
-    Base.metadata.create_all(bind=sync_engine)
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 async def get_async_db():
-    """Get async database session"""
     async with AsyncSessionLocal() as session:
         yield session
