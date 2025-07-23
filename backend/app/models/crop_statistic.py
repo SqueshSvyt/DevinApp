@@ -1,0 +1,36 @@
+from sqlalchemy import Column, Integer, String, DateTime, Float, Text, JSON, ForeignKey
+from app.core.db import Base
+
+class CropStatistic(Base):
+    __tablename__ = "crop_statistics"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    crop_id = Column(String, ForeignKey("crops.id"), nullable=False)
+    avg_daily_growth_rate = Column(Float, nullable=True)
+    max_recorded_height = Column(Float, nullable=True)
+    total_leaf_count = Column(Integer, nullable=True)
+    growth_stage = Column(String, nullable=True)
+    predicted_yield_g = Column(Float, nullable=True)
+    predicted_harvest_date = Column(DateTime, nullable=True)
+    yield_quality_score = Column(Float, nullable=True)
+    survival_rate = Column(Float, nullable=True)
+    resource_efficiency = Column(Float, nullable=True)
+    time_to_harvest_days = Column(Integer, nullable=True)
+    temperature_tolerance = Column(Float, nullable=True)
+    humidity_tolerance = Column(Float, nullable=True)
+    light_efficiency = Column(Float, nullable=True)
+    disease_resistance = Column(Float, nullable=True)
+    pest_resistance = Column(Float, nullable=True)
+    overall_health_trend = Column(String, nullable=True)
+    variety = Column(String, nullable=True)
+    genetic_traits = Column(JSON, nullable=True)
+    cultivation_method = Column(String, nullable=True)
+    fertilizer_program = Column(String, nullable=True)
+    irrigation_schedule = Column(String, nullable=True)
+    nutritional_content = Column(JSON, nullable=True)
+    taste_profile = Column(JSON, nullable=True)
+    appearance_score = Column(Float, nullable=True)
+    shelf_life_days = Column(Integer, nullable=True)
+    cultivation_notes = Column(Text, nullable=True)
+    harvest_notes = Column(Text, nullable=True)
+    special_observations = Column(Text, nullable=True)
