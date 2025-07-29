@@ -15,12 +15,12 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <AppBar position="static" elevation={1}>
+      <AppBar position="static" elevation={1} sx={{ bgcolor: 'white', color: 'black' }}>
         <Toolbar sx={{ justifyContent: 'space-between' }}>
-          <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
+          <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', color: 'black' }}>
             Control Panel
           </Typography>
-          <Avatar sx={{ bgcolor: 'secondary.main' }}>
+          <Avatar sx={{ bgcolor: 'secondary.main', color: 'white' }}>
             U
           </Avatar>
         </Toolbar>

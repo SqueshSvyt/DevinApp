@@ -75,10 +75,13 @@ export const containerApi = {
     await handleResponse<void>(response);
   },
 
-  async getPerformanceMetrics(typeFilter?: string): Promise<PerformanceMetrics> {
+  async getPerformanceMetrics(typeFilter?: string, timePeriod?: string): Promise<PerformanceMetrics> {
     const searchParams = new URLSearchParams();
     if (typeFilter) {
       searchParams.append('type_filter', typeFilter);
+    }
+    if (timePeriod) {
+      searchParams.append('time_period', timePeriod);
     }
     
     const response = await fetch(`${API_BASE_URL}/containers/performance?${searchParams}`);

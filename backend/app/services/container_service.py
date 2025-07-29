@@ -72,11 +72,32 @@ class ContainerService:
     async def delete_container(self, container_id: str) -> bool:
         return await self.repository.delete(container_id)
 
-    async def get_performance_metrics(self, type_filter: Optional[str] = None) -> Dict[str, Any]:
+    async def get_performance_metrics(self, type_filter: Optional[str] = None, time_period: Optional[str] = "week") -> Dict[str, Any]:
         containers, _ = await self.repository.get_all(type_filter=type_filter)
         
         physical_containers = [c for c in containers if c.type == "physical"]
         virtual_containers = [c for c in containers if c.type == "virtual"]
+        
+        def get_time_period_data(base_data: list, time_period: str) -> list:
+            if time_period == "week":
+                return base_data
+            elif time_period == "month":
+                return [sum(base_data[i:i+2]) // 2 for i in range(0, len(base_data), 2)][:4]
+            elif time_period == "quarter":
+                return [sum(base_data[i:i+3]) // 3 for i in range(0, len(base_data), 3)][:3]
+            elif time_period == "year":
+                return [sum(base_data[i:i+2]) // 2 for i in range(0, len(base_data), 2)][:4]
+            return base_data
+        
+        base_physical_yield = [45, 52, 63, 58, 71, 69, 75]
+        base_physical_utilization = [75, 82, 80, 85, 78, 83, 80]
+        base_virtual_yield = [32, 38, 45, 41, 52, 48, 55]
+        base_virtual_utilization = [60, 68, 65, 70, 62, 67, 65]
+        
+        physical_yield_data = get_time_period_data(base_physical_yield, time_period)
+        physical_utilization_data = get_time_period_data(base_physical_utilization, time_period)
+        virtual_yield_data = get_time_period_data(base_virtual_yield, time_period)
+        virtual_utilization_data = get_time_period_data(base_virtual_utilization, time_period)
         
         return {
             "physical": {
@@ -84,16 +105,16 @@ class ContainerService:
                 "avg_yield": 63.0,
                 "total_yield": 81.0,
                 "avg_utilization": 80.0,
-                "yield_data": [45, 52, 63, 58, 71, 69, 75],
-                "utilization_data": [75, 82, 80, 85, 78, 83, 80]
+                "yield_data": physical_yield_data,
+                "utilization_data": physical_utilization_data
             },
             "virtual": {
                 "count": len(virtual_containers),
                 "avg_yield": 45.0,
                 "total_yield": 67.0,
                 "avg_utilization": 65.0,
-                "yield_data": [32, 38, 45, 41, 52, 48, 55],
-                "utilization_data": [60, 68, 65, 70, 62, 67, 65]
+                "yield_data": virtual_yield_data,
+                "utilization_data": virtual_utilization_data
             }
         }
 
