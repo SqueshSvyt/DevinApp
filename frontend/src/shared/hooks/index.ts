@@ -45,7 +45,7 @@ export const useContainers = (filters: ContainerFilters) => {
   };
 };
 
-export const usePerformanceMetrics = (typeFilter?: string) => {
+export const usePerformanceMetrics = (typeFilter?: string, timePeriod?: string) => {
   const [metrics, setMetrics] = useState<PerformanceMetrics | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +54,7 @@ export const usePerformanceMetrics = (typeFilter?: string) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await containerApi.getPerformanceMetrics(typeFilter);
+      const data = await containerApi.getPerformanceMetrics(typeFilter, timePeriod);
       setMetrics(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch metrics');
@@ -65,7 +65,7 @@ export const usePerformanceMetrics = (typeFilter?: string) => {
 
   useEffect(() => {
     fetchMetrics();
-  }, [typeFilter]);
+  }, [typeFilter, timePeriod]);
 
   return {
     metrics,

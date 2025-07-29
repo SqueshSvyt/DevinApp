@@ -41,7 +41,7 @@ export const PerformanceOverview: React.FC<PerformanceOverviewProps> = ({
 }) => {
   const [selectedType, setSelectedType] = useState<string>('');
   const [timeRange, setTimeRange] = useState<string>('week');
-  const { metrics } = usePerformanceMetrics(selectedType);
+  const { metrics } = usePerformanceMetrics(selectedType, timeRange);
 
   const handleTypeClick = (type: string) => {
     const newType = selectedType === type ? '' : type;
@@ -49,8 +49,23 @@ export const PerformanceOverview: React.FC<PerformanceOverviewProps> = ({
     onTypeFilter(newType);
   };
 
+  const getChartLabels = (timePeriod: string) => {
+    switch (timePeriod) {
+      case 'week':
+        return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      case 'month':
+        return ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+      case 'quarter':
+        return ['Month 1', 'Month 2', 'Month 3'];
+      case 'year':
+        return ['Q1', 'Q2', 'Q3', 'Q4'];
+      default:
+        return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    }
+  };
+
   const getChartData = (data: number[], color: string) => ({
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    labels: getChartLabels(timeRange),
     datasets: [
       {
         data,

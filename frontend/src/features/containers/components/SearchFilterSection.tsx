@@ -42,8 +42,8 @@ export const SearchFilterSection: React.FC<SearchFilterSectionProps> = ({
 
   return (
     <Box sx={{ mb: 3, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
-      <Grid container spacing={2} alignItems="center">
-        <Grid item xs={12} md={3}>
+      <Grid container spacing={2} alignItems="center" wrap="nowrap">
+        <Grid item md={3}>
           <TextField
             fullWidth
             label="Search"
@@ -54,7 +54,7 @@ export const SearchFilterSection: React.FC<SearchFilterSectionProps> = ({
           />
         </Grid>
         
-        <Grid item xs={6} md={2}>
+        <Grid item md={1.5}>
           <FormControl fullWidth size="small">
             <InputLabel>Type</InputLabel>
             <Select
@@ -69,7 +69,7 @@ export const SearchFilterSection: React.FC<SearchFilterSectionProps> = ({
           </FormControl>
         </Grid>
 
-        <Grid item xs={6} md={2}>
+        <Grid item md={1.5}>
           <FormControl fullWidth size="small">
             <InputLabel>Tenant</InputLabel>
             <Select
@@ -87,7 +87,7 @@ export const SearchFilterSection: React.FC<SearchFilterSectionProps> = ({
           </FormControl>
         </Grid>
 
-        <Grid item xs={6} md={2}>
+        <Grid item md={1.5}>
           <FormControl fullWidth size="small">
             <InputLabel>Purpose</InputLabel>
             <Select
@@ -103,7 +103,7 @@ export const SearchFilterSection: React.FC<SearchFilterSectionProps> = ({
           </FormControl>
         </Grid>
 
-        <Grid item xs={6} md={2}>
+        <Grid item md={1.5}>
           <FormControl fullWidth size="small">
             <InputLabel>Status</InputLabel>
             <Select
@@ -120,7 +120,7 @@ export const SearchFilterSection: React.FC<SearchFilterSectionProps> = ({
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} md={1}>
+        <Grid item md={2}>
           <FormControlLabel
             control={
               <Switch
@@ -134,14 +134,21 @@ export const SearchFilterSection: React.FC<SearchFilterSectionProps> = ({
           />
         </Grid>
 
-        <Grid item xs={12} md={1}>
+        <Grid item md={1}>
           <Button
-            variant="outlined"
             onClick={clearFilters}
             size="small"
             fullWidth
+            sx={{
+              backgroundColor: '#f5f5f5',
+              color: '#000000',
+              border: '1px solid #d0d0d0',
+              '&:hover': {
+                backgroundColor: '#e0e0e0',
+              },
+            }}
           >
-            Clear
+            CLEAR
           </Button>
         </Grid>
       </Grid>

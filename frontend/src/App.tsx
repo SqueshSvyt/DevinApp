@@ -2,6 +2,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { BrowserRouter } from 'react-router-dom';
 import { AppRouter } from './router/AppRouter';
+import { Layout } from './components/Layout';
 
 const theme = createTheme({
   palette: {
@@ -19,7 +20,9 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <BrowserRouter>
-        <AppRouter />
+        <Layout>
+          <AppRouter />
+        </Layout>
       </BrowserRouter>
     </ThemeProvider>
   );

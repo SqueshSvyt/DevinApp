@@ -30,10 +30,11 @@ async def get_containers(
 @router.get("/performance", response_model=dict)
 async def get_performance_metrics(
     type_filter: Optional[str] = Query(None),
+    time_period: Optional[str] = Query("week", regex="^(week|month|quarter|year)$"),
     db: AsyncSession = Depends(get_async_db)
 ):
     service = ContainerService(db)
-    return await service.get_performance_metrics(type_filter=type_filter)
+    return await service.get_performance_metrics(type_filter=type_filter, time_period=time_period)
 
 @router.get("/{container_id}", response_model=ContainerResponse)
 async def get_container(
